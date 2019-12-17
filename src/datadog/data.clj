@@ -69,7 +69,13 @@
 (defn ->datamap [nodes]
   (->> nodes
     (map (fn [dom]
-           (xml->json (xml-in/find-first dom [:Udaj]))))))
+           [(-> (xml-in/find-first dom [:Udaj :hlavicka])
+                first
+                (.toLowerCase)
+                (s/replace #"\s" "_")
+                keyword)
+            (xml->json (xml-in/find-first dom [:Udaj]))]))
+    (into (sorted-map))))
 
 (defn ->map [dom]
   (merge {:udaje (->datamap (xml-in/find-all dom [:Subjekt :udaje]))}
@@ -83,3 +89,6 @@
            io/input-stream
            (xml/parse startparse-sax)
            (xml-in/find-all [:xml]))))
+
+(comment
+  (get-data-seq "resources\\svj-actual-usti_nad_labem-2019.xml"))

@@ -10,11 +10,12 @@
                                   get-data-seq]]
             [datadog.db :refer [get-subject-from-db
                                 insert-new-source!
-                                insert-new-diff!]]))
+                                insert-new-diff!
+                                update-existing-source!]]))
 
 (defn store-diff! [entity new-data source]
   (let [old-data (json/read-str (:data entity)
-                            :key-fn keyword)
+                                :key-fn keyword)
         [old-added old-removed _] (diff new-data old-data)]
     (comment
       "Data reconstruction"
@@ -23,6 +24,8 @@
                                       (keys old-added))))))
     (when-not (and (empty? old-added)
                    (empty? old-removed))
+      (update-existing-source! entity
+                               new-data)
       (insert-new-diff! entity
                         old-added
                         old-removed))))

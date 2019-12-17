@@ -42,6 +42,13 @@
     :generated_key
     get-link-by-id))
 
+(defn update-existing-source! [{:keys [id]} data]
+  (j/update! mysql-db
+             :sources
+             {:data (json/write-str data)
+              :utime (now)}
+             ["id = ?" id]))
+
 (defn insert-new-diff! [data added removed]
   (->
     (j/insert! mysql-db
