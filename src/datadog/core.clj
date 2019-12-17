@@ -7,8 +7,6 @@
                                   remove-data
                                   data-path
                                   link->name
-                                  line->list
-                                  get-header
                                   get-data-seq]]
             [datadog.db :refer [get-subject-from-db
                                 insert-new-source!
@@ -32,12 +30,10 @@
 (defn store-new! [data source]
   (insert-new-source! data source))
 
-(defn update-source! [& {:keys [header
-                                source
+(defn update-source! [& {:keys [source
                                 data]}]
   (try
-    (let [data (zipmap header (line->list data))
-          ico (read-string (:ico data))]
+    (let [ico (read-string (:ico data))]
       (when ico
         (if-let [existing-entity (get-subject-from-db ico)]
           (store-diff! existing-entity
@@ -52,12 +48,11 @@
       ; (throw (Exception. "Cannot process: " (str data))))))
 
 (defn process-file! [url-source data-source]
-  (let [header (get-header data-source)
-        cb #(update-source! :header header
-                            :source url-source
-                            :data-source data-source
-                            :data %)]
-    (get-data-seq data-source cb)))
+  (doseq [data (get-data-seq data-source)]
+    (prn "ICO: " (:ico data))
+    (update-source! :source url-source
+                    :data-source data-source
+                    :data data)))
 
 (comment
   (process-file! (first (get-links))
